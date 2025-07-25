@@ -1,0 +1,58 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.pnpm-store/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Directory for compiled output
+dist/
+build/
+es/
+lib/
+esm/
+
+# TypeScript cache
+.tsbuildinfo
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm/
+
+# Optional REPL history
+.node_repl_history
+
+# dotenv environment variables file
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# VS Code specific files
+.vscode/
+.vscode/*.vscodeignore
+
+# Mac specific files
+.DS_Store
+
+# npm package manager cache
+.npm/
+
+# editorconfig
+.editorconfig
