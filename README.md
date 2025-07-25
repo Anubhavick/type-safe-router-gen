@@ -37,4 +37,52 @@ This generator aims to solve these problems by:
 This project is currently in its very initial stages. I am actively working on the foundational logic:
 * **[COMPLETED]** Basic CLI setup with Node.js and TypeScript.
 * **[IN PROGRESS]** File system scanning to read individual route files.
-* **[NEXT]** Logic to correctly parse
+* **[NEXT]** Logic to correctly parse simple static and dynamic route paths from filenames.
+* **[SOON]** Initial code generation for basic type-safe route functions.
+
+Please note that functionality is limited at this moment, but the core vision is clear!
+
+---
+
+## 🛠️ Tech Stack
+
+* **Node.js:** The runtime environment for the CLI.
+* **TypeScript:** For robust type-safety and a better development experience.
+* **`fs` & `path` modules:** Node.js built-in modules for file system interactions.
+* *(Future additions might include: `chokidar` for watch mode, `ts-morph` or `TypeScript compiler API` for advanced AST parsing, etc.)*
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+* Node.js (v18 or higher recommended)
+* npm or Yarn (package manager)
+
+### Installation
+
+Currently, the tool is not published to npm. To use it:
+
+1.  **Clone the repository:**
+    ```bash
+    git clone [https://github.com/](https://github.com/)[Your GitHub Username]/type-safe-router-gen.git
+    cd type-safe-router-gen
+    ```
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    # or
+    yarn install
+    ```
+
+### Usage (Work in Progress)
+
+Once the core parsing and generation logic is implemented, usage will involve:
+
+```bash
+# To run the development version of the generator:
+npm start
+
+# Or, to build the production version (not yet fully functional for output):
+npm run build
