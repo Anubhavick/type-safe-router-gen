@@ -66,7 +66,7 @@ Currently, the tool is not published to npm. To use it:
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/](https://github.com/)[Your GitHub Username]/type-safe-router-gen.git
+    git clone https://github.com/Anubhavick/type-safe-router-gen.git
     cd type-safe-router-gen
     ```
 2.  **Install dependencies:**
