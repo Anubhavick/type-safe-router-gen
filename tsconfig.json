@@ -5,14 +5,14 @@
     "jsx": "react",                                      /* Specify what JSX code is generated. "react" is suitable for React JSX. */
 
     /* Modules */
-    "module": "nodenext",                                /* Specify what module code is generated. */
-    "rootDir": "./src",                                  /* Specify the root folder within your source files where your main tool code lives. */
-    "moduleResolution": "nodenext",                      /* Specify how TypeScript looks up a file from a given module specifier. 'nodenext' is robust for modern Node.js. */
+    "module": "nodenext",                                /* Specify what module code is generated. 'nodenext' for modern Node.js. */
+    "rootDir": "./src",                                  /* Specify the root folder for your tool's source files. */
+    "moduleResolution": "nodenext",                      /* Specify how TypeScript looks up a file from a given module specifier. */
     "esModuleInterop": true,                             /* Emit additional JavaScript to ease support for importing CommonJS modules. */
 
     /* Emit */
     "outDir": "./dist",                                  /* Specify an output folder for all emitted JavaScript files. */
-    "declaration": true,                                 /* Generate .d.ts files for your compiled code. Important for libraries! */
+    "declaration": true,                                 /* Generate .d.ts files for your compiled code. */
     "sourceMap": true,                                   /* Create sourcemaps for debugging. */
     "removeComments": true,                              /* Remove comments from compiled JavaScript. */
 
@@ -28,7 +28,7 @@
     /* Completeness */
     "skipLibCheck": true                                 /* Skip type checking all .d.ts files (speeds up compilation). */
   },
-  // THESE ARE CRUCIAL FOR YOUR CURRENT PROBLEM!
+  // These are crucial for telling TypeScript which files to compile
   "include": [
     "src/**/*.ts",                                       /* Include all TypeScript files (.ts) in your 'src' directory. */
     "src/**/*.tsx"                                       /* Include all TypeScript JSX files (.tsx) in your 'src' directory. */
@@ -36,6 +36,6 @@
   "exclude": [
     "node_modules",                                      /* Exclude all files in 'node_modules' from compilation. */
     "dist",                                              /* Exclude your compiled output directory. */
-    "test-app"                                           /* Exclude your dummy 'test-app' files from compilation, as they are not part of your tool's source code. */
+    "test-app"                                           /* Exclude your dummy 'test-app' files from compilation. */
   ]
 }

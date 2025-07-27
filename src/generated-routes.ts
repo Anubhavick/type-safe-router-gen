@@ -9,6 +9,11 @@ export const Routes = {
   contact: () => "/contact",
   home: () => "/",
   products: () => "/products",
+  
+
+   blog: (params: { slug: string }) => `/blog/${params.slug}`,
+
+   
 };
 
 /**
