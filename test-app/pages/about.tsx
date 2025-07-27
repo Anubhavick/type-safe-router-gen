@@ -9,9 +9,12 @@ export default function AboutPage() {
   const myBlogPostPath = Routes.blogs.slug({ slug: 'my-first-post' });
 
   // Optional route usage (if generated correctly):
-  // Example for /docs or /docs/getting-started/overview
   const docsRootPath = Routes.docs.slug(); // Call without params for root or with empty array for no slugs
   const docsPagePath = Routes.docs.slug({ slug: ['getting-started', 'overview'] });
+
+  // Search route usage
+  const simpleSearchPath = Routes.search({ q: 'TypeScript' });
+  const complexSearchPath = Routes.search({ q: 'Next.js' }, { page: 2, category: ['frontend', 'react'] });
 
 
   console.log('--- Routes from about.tsx ---');
@@ -22,6 +25,8 @@ export default function AboutPage() {
   console.log(`Blog Post Path (my-first-post): ${myBlogPostPath}`);
   console.log(`Docs Root Path: ${docsRootPath}`);
   console.log(`Docs Page Path: ${docsPagePath}`);
+  console.log(`Simple Search Path: ${simpleSearchPath}`);
+  console.log(`Complex Search Path: ${complexSearchPath}`);
   console.log('---------------------------');
 
   return (
@@ -32,6 +37,8 @@ export default function AboutPage() {
       <p>Generated Blog Path: {myBlogPostPath}</p>
       <p>Generated Docs Path (root): {docsRootPath}</p>
       <p>Generated Docs Path (page): {docsPagePath}</p>
+      <p>Generated Simple Search Path: {simpleSearchPath}</p>
+      <p>Generated Complex Search Path: {complexSearchPath}</p>
     </div>
   );
 }

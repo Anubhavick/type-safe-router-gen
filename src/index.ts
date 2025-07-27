@@ -1,4 +1,4 @@
-import { readdirSync } from 'fs';
+import { readdirSync, readFileSync } from 'fs';
 import { join, relative } from 'path';
 import { generateRoutesFile } from './generator';
 
@@ -8,6 +8,7 @@ interface DiscoveredRouteEntry {
   filePath: string;
   routePath: string;
   params: { name: string; type: string; optional?: boolean; catchAll?: boolean; }[];
+  queryParams?: { name: string; type: string; optional?: boolean; }[];
 }
 
 function getRoutePathFromFilePath(filePath: string, basePagesDir: string): string {
@@ -47,6 +48,27 @@ function getAllFilePaths(dirPath: string, fileList: string[] = []): string[] {
     return fileList;
 }
 
+function extractQueryParams(filePath: string): { name: string; type: string; optional?: boolean; }[] {
+  const content = readFileSync(filePath, 'utf-8');
+  const params: { name: string; type: string; optional?: boolean; }[] = [];
+
+  const interfaceMatch = content.match(/export interface QueryParams\s*{(.*?)}/s);
+
+  if (interfaceMatch && interfaceMatch[1]) {
+    const properties = interfaceMatch[1].split(';').map(p => p.trim()).filter(p => p.length > 0);
+    properties.forEach(prop => {
+      const match = prop.match(/^(\w+)\s*(\?)?:\s*([\w\[\]]+)/); // Adjusted regex for types like string[]
+      if (match) {
+        const name = match[1];
+        const optional = !!match[2];
+        const type = match[3];
+        params.push({ name, type, optional });
+      }
+    });
+  }
+  return params;
+}
+
 const baseAppPath = join(process.cwd(), 'test-app');
 const pagesDirPath = join(baseAppPath, 'pages');
 
@@ -75,8 +97,10 @@ allRouteFiles.forEach(filePath => {
         });
     }
 
-    discoveredRoutes.push({ filePath, routePath, params });
-    console.log(`  ${relative(process.cwd(), filePath)} -> ${routePath} (Params: ${params.map(p => `${p.name}${p.optional ? '?' : ''}${p.catchAll ? '[]' : ''}`).join(', ') || 'None'})`);
+    const queryParams = extractQueryParams(filePath);
+
+    discoveredRoutes.push({ filePath, routePath, params, queryParams: queryParams.length > 0 ? queryParams : undefined });
+    console.log(`  ${relative(process.cwd(), filePath)} -> ${routePath} (Params: ${params.map(p => `${p.name}${p.optional ? '?' : ''}${p.catchAll ? '[]' : ''}`).join(', ') || 'None'}) (Query: ${queryParams.map(q => `${q.name}${q.optional ? '?' : ''}: ${q.type}`).join(', ') || 'None'})`);
 });
 
 console.log("\n--- END OF SCANNING ---\n");

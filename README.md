@@ -1,55 +1,52 @@
 # Type-Safe Frontend Router Generator 🚀
 
-**A CLI tool to generate type-safe navigation helpers and route definitions for file-based frontend routers (e.g., Next.js, Remix, Astro).**
+**A powerful CLI tool that generates type-safe navigation helpers and route definitions for file-based frontend routers (e.g., Next.js, Remix, Astro). Say goodbye to magic strings and runtime routing errors!**
 
 ---
 
 ## 💡 Why This Project?
 
-In modern web development, routing often relies on "magic strings" and manual path construction. This can lead to:
-* **Runtime errors:** Simple typos in a URL string go unnoticed until the application breaks in production.
-* **Poor developer experience:** No autocompletion for route paths or parameters in your IDE.
-* **Difficult refactoring:** Changing a route path means manually updating every single usage across your codebase.
+In complex web applications, managing routes manually becomes a significant source of bugs and developer frustration. This generator addresses these pain points by:
 
-This generator aims to solve these problems by:
-* **Providing compile-time safety:** Catch routing errors *before* deployment using TypeScript.
-* **Enhancing developer experience:** Get autocompletion for all your defined routes and their required parameters.
-* **Simplifying refactoring:** Let TypeScript guide you through updates when route definitions change.
-* **Reducing boilerplate:** Generate functions that build correct URLs for you.
+* **Compile-time Safety:** Catches routing errors and invalid parameter usage *before* deployment, leveraging TypeScript's robust type system.
+* **Enhanced Developer Experience:** Provides intelligent autocompletion for all your defined routes, their required parameters, and supported query parameters directly in your IDE.
+* **Simplified Refactoring:** When route definitions change, TypeScript guides you through the necessary updates in your codebase.
+* **Reduced Boilerplate:** Automatically generates functions to construct correct and safe URLs, eliminating tedious string concatenation.
 
 ---
 
-## ✨ Features (Planned / In Progress)
+## ✨ Features
 
-* **File-based Route Scanning:** Automatically discover routes by analyzing your project's file structure (e.g., `pages/` or `routes/` directories).
-* **Dynamic Segment Detection:** Correctly identify and type dynamic route segments (e.g., `[id]`, `$slug`).
-* **Type-Safe Navigation Functions:** Generate TypeScript functions (e.g., `Routes.productDetail({ id: '...' })`) that return the correct URL path.
-* **Autocompletion in IDEs:** Leverage generated types for seamless autocompletion.
-* **Framework Agnostic Design:** Initially targeting popular frameworks like Next.js and Remix, with future plans for broader compatibility.
-* **Watch Mode:** Re-generate types automatically when route files change during development.
-* **Query Parameter Typing:** (Future) Infer and type expected query parameters for routes.
-* **Link Component Generation:** (Future) Generate framework-specific `<Link>` components with type-safe props.
+Your generator currently supports:
+
+* **Automatic Route Discovery:** Scans your `pages` or `routes` directory recursively to find all route files.
+* **Static Route Generation:** Generates simple functions for static paths (e.g., `/about` -> `Routes.about()`).
+* **Required Dynamic Segments:** Correctly identifies and types required dynamic parameters (e.g., `blogs/[slug].tsx` -> `Routes.blogs.slug({ slug: string })`).
+* **Optional Catch-All Dynamic Segments:** Handles optional and array-based dynamic routes (e.g., `docs/[[...slug]].tsx` -> `Routes.docs.slug({ slug?: string[] })`).
+* **Type-Safe Query Parameters:** Extracts `QueryParams` interfaces from your route files to generate functions that accept typed query objects (e.g., `search.tsx` with `QueryParams` -> `Routes.search({ q: string }, { page?: number })`).
+* **Intelligent Naming:** Converts file paths like `blogs/[slug].tsx` into valid, intuitive TypeScript object keys like `Routes.blogs.slug`.
+* **Automatic File Generation:** Creates or updates `src/generated-routes.ts` on demand.
 
 ---
 
-## 🚧 Project Status: Early Development (Week 1 / Day 2)
+## 🚧 Project Status: Core Functionality Complete!
 
-This project is currently in its very initial stages. I am actively working on the foundational logic:
-* **[COMPLETED]** Basic CLI setup with Node.js and TypeScript.
-* **[IN PROGRESS]** File system scanning to read individual route files.
-* **[NEXT]** Logic to correctly parse simple static and dynamic route paths from filenames.
-* **[SOON]** Initial code generation for basic type-safe route functions.
+The generator now includes robust handling for various route types (static, dynamic, optional catch-all) and query parameters. The core logic for scanning, parsing, and code generation is solid.
 
-Please note that functionality is limited at this moment, but the core vision is clear!
+**Next steps will focus on:**
+* Making the CLI more configurable (input/output paths).
+* Implementing a `--watch` mode for automatic regeneration.
+* Adding comprehensive tests.
+* Preparing for distribution (e.g., `npm run build` and `bin` entry).
 
 ---
 
 ## 🛠️ Tech Stack
 
-* **Node.js:** The runtime environment for the CLI.
-* **TypeScript:** For robust type-safety and a better development experience.
-* **`fs` & `path` modules:** Node.js built-in modules for file system interactions.
-* *(Future additions might include: `chokidar` for watch mode, `ts-morph` or `TypeScript compiler API` for advanced AST parsing, etc.)*
+* **Node.js:** The runtime environment.
+* **TypeScript:** For building a robust and type-safe generator.
+* **Node.js `fs` & `path` modules:** For efficient file system interactions and path manipulation.
+* **Regular Expressions:** Used for parsing route patterns and extracting parameters.
 
 ---
 
@@ -62,11 +59,11 @@ Please note that functionality is limited at this moment, but the core vision is
 
 ### Installation
 
-Currently, the tool is not published to npm. To use it:
+Currently, the tool is not published to npm. To set up and run:
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/Anubhavick/type-safe-router-gen.git
+    git clone [https://github.com/](https://github.com/)[Your GitHub Username]/type-safe-router-gen.git
     cd type-safe-router-gen
     ```
 2.  **Install dependencies:**
@@ -75,14 +72,77 @@ Currently, the tool is not published to npm. To use it:
     # or
     yarn install
     ```
+3.  **Ensure your dummy `test-app` structure is in place:**
+    ```
+    type-safe-router-gen/
+    ├── src/
+    │   ├── generator.ts
+    │   └── index.ts
+    └── test-app/
+        └── pages/
+            ├── about.tsx
+            ├── blog/
+            │   └── [slug].tsx
+            ├── contact.tsx
+            ├── docs/
+            │   └── [[...slug]].tsx
+            ├── index.tsx
+            ├── products/
+            │   └── index.tsx
+            └── search.tsx
+    ```
 
-### Usage (Work in Progress)
+### Usage
 
-Once the core parsing and generation logic is implemented, usage will involve:
+To run the generator and update your `src/generated-routes.ts` file:
 
 ```bash
-# To run the development version of the generator:
 npm start
+```
 
-# Or, to build the production version (not yet fully functional for output):
-npm run build
+This command will scan your test-app/pages directory and generate the type-safe routing helpers.
+
+Example Usage in Your Application Code (test-app/pages/about.tsx):
+After running npm start, you can import and use the generated Routes object in your application code
+
+`
+// test-app/pages/about.tsx
+import { Routes } from '../../src/generated-routes';
+
+// Static routes
+const homePath = Routes.home();             // Output: "/"
+const aboutPath = Routes.about();           // Output: "/about"
+
+// Required dynamic routes
+const blogPostPath = Routes.blogs.slug({ slug: 'my-first-post' });
+// Output: "/blogs/my-first-post"
+// Try: Routes.blogs.slug() -> TypeScript error: "Expected 1 arguments, but got 0."
+
+// Optional catch-all dynamic routes
+const docsRootPath = Routes.docs.slug(); // Output: "/docs/"
+const docsPagePath = Routes.docs.slug({ slug: ['getting-started', 'overview'] });
+// Output: "/docs/getting-started/overview"
+
+// Routes with Query Parameters
+const simpleSearch = Routes.search({ q: 'TypeScript' });
+// Output: "/search?q=TypeScript"
+const complexSearch = Routes.search(
+  { q: 'Next.js' },
+  { page: 2, category: ['frontend', 'react'] }
+);
+// Output: "/search?q=Next.js&page=2&category=frontend&category=react"`
+
+##👋 Contributing
+Contributions are highly welcome! Whether it's feature ideas, bug reports, or code contributions, your input is valuable.
+Fork the repository.
+Create your feature branch `(git checkout -b feature/your-feature-name)`.
+Commit your changes `(git commit -m 'feat: Add your amazing feature')`.
+Push to the branch `(git push origin feature/your-feature-name).`
+Open a Pull Request.
+Please open an issue first to discuss major changes you would like to make.
+
+##📄 License
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+##🤝 Connect with Me
+anubhav.ickk@gmail.com

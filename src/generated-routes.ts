@@ -5,12 +5,13 @@
  * Use these functions for safe navigation and link creation.
  */
 export const Routes = {
-  about: () => "/about",
+  about: () => `/about`,
   blogs.slug: (params: { slug: string }) => `/blogs/${params.slug}`,
-  contact: () => "/contact",
-  docs.slug: (params?: { slug?: string[] }) => `/docs/${params.slug?.join('/') || ''}`,
-  home: () => "/",
-  products: () => "/products",
+  contact: () => `/contact`,
+  docs.slug: (params?: { slug?: string[] }) => `/docs/${params.slug ? params.slug.join('/') : ''}`,
+  home: () => `/`,
+  products: () => `/products`,
+  search: (query: { q: string, page?: number, category?: string[] }) => `/search${(${query.q ? `&q=${encodeURIComponent(query.q)}` : ''}${query.page ? `&page=${encodeURIComponent(query.page)}` : ''}${query.category && query.category.length > 0 ? `&category=${query.category.map(val => encodeURIComponent(val)).join(`&category=`)}` : ''} || '').replace(/^&/, '?')}`,
 };
 
 /**

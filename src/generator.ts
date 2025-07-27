@@ -5,10 +5,8 @@ interface RouteData {
   filePath: string;
   routePath: string;
   params: { name: string; type: string; optional?: boolean; catchAll?: boolean; }[];
+  queryParams?: { name: string; type: string; optional?: boolean; }[];
 }
-
-// src/generator.ts
-// ... (rest of imports and interfaces) ...
 
 export function generateRoutesFile(routes: RouteData[]) {
   const outputPath = join(process.cwd(), 'src', 'generated-routes.ts');
@@ -21,15 +19,15 @@ export function generateRoutesFile(routes: RouteData[]) {
   fileContent += `export const Routes = {\n`;
 
   routes.forEach(route => {
-    // Corrected routeName generation for dynamic segments
     const routeName = route.routePath === '/'
                       ? 'home'
                       : route.routePath
-                          .replace(/^\//, '')              // Remove leading slash
-                          .replace(/:([a-zA-Z0-9_]+)\*?/g, '$1') // Remove colons AND optional '*' from dynamic segments
-                          .replace(/\//g, '.');            // Replace slashes with dots
+                          .replace(/^\//, '')
+                          .replace(/:([a-zA-Z0-9_]+)\*?/g, '$1')
+                          .replace(/\//g, '.');
 
-    // ... (rest of the if/else logic for parameters) ...
+    let functionArgs: string[] = [];
+    let pathConstruction = route.routePath;
 
     if (route.params.length > 0) {
       const paramList = route.params.map(p => {
@@ -39,21 +37,31 @@ export function generateRoutesFile(routes: RouteData[]) {
         }
         return `${p.name}${p.optional ? '?' : ''}: ${paramType}`;
       }).join(', ');
+      functionArgs.push(`params${route.params.every(p => p.optional) ? '?' : ''}: { ${paramList} }`);
 
-      let pathConstruction = route.routePath;
       route.params.forEach(p => {
           if (p.catchAll) {
-              pathConstruction = pathConstruction.replace(`:${p.name}*`, `\${params.${p.name}?.join('/') || ''}`);
+              pathConstruction = pathConstruction.replace(`:${p.name}*`, `\${params.${p.name} ? params.${p.name}.join('/') : ''}`);
           } else {
               pathConstruction = pathConstruction.replace(`:${p.name}`, `\${params.${p.name}}`);
           }
       });
-
-      // The key issue was here: routeName needed to be free of '*'
-      fileContent += `  ${routeName}: (params${route.params.every(p => p.optional) ? '?' : ''}: { ${paramList} }) => \`${pathConstruction}\`,\n`;
-    } else {
-      fileContent += `  ${routeName}: () => "${route.routePath}",\n`;
     }
+
+    if (route.queryParams && route.queryParams.length > 0) {
+      const queryParamList = route.queryParams.map(q => `${q.name}${q.optional ? '?' : ''}: ${q.type}`).join(', ');
+      functionArgs.push(`query${route.queryParams.every(q => q.optional) ? '?' : ''}: { ${queryParamList} }`);
+
+      const queryStringParts = route.queryParams.map(q => {
+        if (q.type.endsWith('[]')) {
+          return `\${query.${q.name} && query.${q.name}.length > 0 ? \`&${q.name}=\${query.${q.name}.map(val => encodeURIComponent(val)).join(\`&${q.name}=\`)}\` : ''}`;
+        }
+        return `\${query.${q.name} ? \`&${q.name}=\${encodeURIComponent(query.${q.name})}\` : ''}`;
+      }).join('');
+      pathConstruction += `\${(${queryStringParts} || '').replace(/^&/, '?')}`;
+    }
+
+    fileContent += `  ${routeName}: (${functionArgs.join(', ')}) => \`${pathConstruction}\`,\n`;
   });
 
   fileContent += `};\n\n`;
