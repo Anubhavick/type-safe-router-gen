@@ -6,14 +6,11 @@
  */
 export const Routes = {
   about: () => "/about",
+  blogs.slug: (params: { slug: string }) => `/blogs/${params.slug}`,
   contact: () => "/contact",
+  docs.slug: (params?: { slug?: string[] }) => `/docs/${params.slug?.join('/') || ''}`,
   home: () => "/",
   products: () => "/products",
-  
-
-   blog: (params: { slug: string }) => `/blog/${params.slug}`,
-
-   
 };
 
 /**

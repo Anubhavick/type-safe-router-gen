@@ -1,17 +1,18 @@
-// test-app/pages/about.tsx
 import React from 'react';
-import { Routes } from '../../src/generated-routes'; // Path relative to about.tsx
+import { Routes } from '../../src/generated-routes';
 
 export default function AboutPage() {
-  // Using the generated type-safe routes
   const homePath = Routes.home();
   const aboutPath = Routes.about();
   const contactPath = Routes.contact();
   const productsPath = Routes.products();
+  const myBlogPostPath = Routes.blogs.slug({ slug: 'my-first-post' });
 
-  // Example of using the dynamic route with a parameter
-  const myBlogPostPath = Routes.blog({ slug: 'my-first-post' }); // Autocompletion and type-checking here!
-  // const anotherPostPath = Routes.blog(); // <-- UNCOMMENT THIS LINE TO SEE A TYPE ERROR IN VS CODE!
+  // Optional route usage (if generated correctly):
+  // Example for /docs or /docs/getting-started/overview
+  const docsRootPath = Routes.docs.slug(); // Call without params for root or with empty array for no slugs
+  const docsPagePath = Routes.docs.slug({ slug: ['getting-started', 'overview'] });
+
 
   console.log('--- Routes from about.tsx ---');
   console.log(`Home Page Path: ${homePath}`);
@@ -19,6 +20,8 @@ export default function AboutPage() {
   console.log(`Contact Page Path: ${contactPath}`);
   console.log(`Products Page Path: ${productsPath}`);
   console.log(`Blog Post Path (my-first-post): ${myBlogPostPath}`);
+  console.log(`Docs Root Path: ${docsRootPath}`);
+  console.log(`Docs Page Path: ${docsPagePath}`);
   console.log('---------------------------');
 
   return (
@@ -27,6 +30,8 @@ export default function AboutPage() {
       <p>This is a dummy about page for testing the router generator.</p>
       <p>Generated Home Path: {homePath}</p>
       <p>Generated Blog Path: {myBlogPostPath}</p>
+      <p>Generated Docs Path (root): {docsRootPath}</p>
+      <p>Generated Docs Path (page): {docsPagePath}</p>
     </div>
   );
 }
