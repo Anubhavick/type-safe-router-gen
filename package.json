@@ -1,16 +1,32 @@
 {
   "name": "type-safe-router-gen",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "A powerful CLI tool that generates type-safe navigation helpers and route definitions for file-based frontend routers",
+  "main": "dist/index.js",
+  "bin": {
+    "router-gen": "./dist/cli.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "ts-node src/index.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "dev": "ts-node src/cli.ts generate",
+    "watch": "ts-node src/cli.ts watch",
+    "cli": "ts-node src/cli.ts"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "keywords": [
+    "typescript",
+    "router",
+    "type-safe",
+    "nextjs",
+    "remix",
+    "astro",
+    "sveltekit",
+    "cli",
+    "code-generation"
+  ],
+  "author": "Anubhav Singh",
+  "license": "MIT",
   "devDependencies": {
     "@types/node": "^24.1.0",
     "ts-node": "^10.9.2",
@@ -18,6 +34,8 @@
   },
   "dependencies": {
     "@types/react": "^19.1.8",
+    "chokidar": "^4.0.3",
+    "commander": "^14.0.0",
     "react": "^19.1.0"
   }
 }

@@ -6,12 +6,16 @@
  */
 export const Routes = {
   about: () => `/about`,
-  blogs.slug: (params: { slug: string }) => `/blogs/${params.slug}`,
+  blogs: {
+    slug: (params: { slug: string }) => `/blogs/${params.slug}`,
+  },
   contact: () => `/contact`,
-  docs.slug: (params?: { slug?: string[] }) => `/docs/${params.slug ? params.slug.join('/') : ''}`,
+  docs: {
+    slug: (params?: { slug?: string[] }) => `/docs/${params?.slug ? params.slug.join('/') : ''}`,
+  },
   home: () => `/`,
   products: () => `/products`,
-  search: (query: { q: string, page?: number, category?: string[] }) => `/search${(${query.q ? `&q=${encodeURIComponent(query.q)}` : ''}${query.page ? `&page=${encodeURIComponent(query.page)}` : ''}${query.category && query.category.length > 0 ? `&category=${query.category.map(val => encodeURIComponent(val)).join(`&category=`)}` : ''} || '').replace(/^&/, '?')}`,
+  search: (query: { q: string, page?: number, category?: string[] }) => `/search${[query.q ? '&q=' + encodeURIComponent(query.q) : '', query.page ? '&page=' + encodeURIComponent(query.page) : '', query.category && query.category.length > 0 ? '&category=' + query.category.map(val => encodeURIComponent(val)).join('&category=') : ''].join('').replace(/^&/, '?')}`,
 };
 
 /**
@@ -22,4 +26,4 @@ export type RouteNames = keyof typeof Routes;
 /**
  * Union type of all generated route paths (the actual URL strings).
  */
-export type RoutePaths = ReturnType<typeof Routes[RouteNames]>;
+export type RoutePaths = string;

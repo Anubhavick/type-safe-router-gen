@@ -1,0 +1,11 @@
+{
+  "input": "./pages",
+  "output": "./src/generated-routes.ts",
+  "framework": "nextjs",
+  "excludePatterns": [
+    "**/api/**",
+    "**/_*"
+  ],
+  "includeQueryParams": true,
+  "generateTests": false
+}

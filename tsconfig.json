@@ -36,6 +36,7 @@
   "exclude": [
     "node_modules",                                      /* Exclude all files in 'node_modules' from compilation. */
     "dist",                                              /* Exclude your compiled output directory. */
-    "test-app"                                           /* Exclude your dummy 'test-app' files from compilation. */
+    "test-app",                                          /* Exclude your dummy 'test-app' files from compilation. */
+    "**/*.test.ts"                                       /* Exclude test files from compilation. */
   ]
 }
