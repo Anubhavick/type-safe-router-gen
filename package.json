@@ -1,6 +1,6 @@
 {
   "name": "type-safe-router-gen",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Generate type-safe navigation helpers for file-based routing. Stop using magic strings, catch routing errors at compile time, and enjoy full IDE autocompletion for all your routes.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

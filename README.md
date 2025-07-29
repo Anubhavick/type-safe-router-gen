@@ -1,5 +1,9 @@
 # Type-Safe Router Generator 🚀
 
+[![npm version](https://badge.fury.io/js/type-safe-router-gen.svg)](https://badge.fury.io/js/type-safe-router-gen)
+[![npm downloads](https://img.shields.io/npm/dm/type-safe-router-gen.svg)](https://www.npmjs.com/package/type-safe-router-gen)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 **Generate type-safe navigation helpers for your file-based routing. Stop using magic strings, catch routing errors at compile time, and enjoy full IDE autocompletion for all your routes.**
 
 ```bash
