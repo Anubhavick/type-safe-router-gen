@@ -1,0 +1,23 @@
+# Source files
+src/
+tsconfig.json
+
+# Test and development files
+test-app/
+example-usage.ts
+**/*.test.ts
+
+# Development dependencies
+node_modules/
+
+# IDE and system files
+.vscode/
+.DS_Store
+*.log
+
+# Git
+.git/
+.gitignore
+
+# Development config
+router-gen.config.json

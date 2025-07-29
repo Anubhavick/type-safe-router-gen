@@ -1,15 +1,22 @@
 {
   "name": "type-safe-router-gen",
-  "version": "1.0.0",
-  "description": "A powerful CLI tool that generates type-safe navigation helpers and route definitions for file-based frontend routers",
+  "version": "0.1.0",
+  "description": "Generate type-safe navigation helpers for file-based routing. Stop using magic strings, catch routing errors at compile time, and enjoy full IDE autocompletion for all your routes.",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "bin": {
     "router-gen": "./dist/cli.js"
   },
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "ts-node src/index.ts",
-    "build": "tsc",
     "dev": "ts-node src/cli.ts generate",
     "watch": "ts-node src/cli.ts watch",
     "cli": "ts-node src/cli.ts"
@@ -23,19 +30,34 @@
     "astro",
     "sveltekit",
     "cli",
-    "code-generation"
+    "code-generation",
+    "routing",
+    "navigation",
+    "file-based-routing"
   ],
-  "author": "Anubhav Singh",
+  "author": {
+    "name": "Anubhav Singh",
+    "email": "anubhav.ickk@gmail.com"
+  },
   "license": "MIT",
+  "homepage": "https://github.com/Anubhavick/type-safe-router-gen#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Anubhavick/type-safe-router-gen.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Anubhavick/type-safe-router-gen/issues"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "devDependencies": {
     "@types/node": "^24.1.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "@types/react": "^19.1.8",
     "chokidar": "^4.0.3",
-    "commander": "^14.0.0",
-    "react": "^19.1.0"
+    "commander": "^14.0.0"
   }
 }
