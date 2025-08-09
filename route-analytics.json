@@ -1,0 +1,18 @@
+{
+  "totalRoutes": 7,
+  "dynamicRoutes": 2,
+  "staticRoutes": 5,
+  "routesWithQueryParams": 1,
+  "nestedRoutes": 2,
+  "catchAllRoutes": 1,
+  "routeDepthDistribution": {
+    "1": 5,
+    "2": 2
+  },
+  "parameterUsage": {
+    "slug": 2
+  },
+  "fileTypes": {
+    "tsx": 7
+  }
+}

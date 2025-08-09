@@ -1,0 +1,71 @@
+{
+  "timestamp": "2025-08-09T09:21:57.759Z",
+  "summary": {
+    "totalRoutes": 7,
+    "totalSize": 3096,
+    "averageComplexity": 0,
+    "routesWithIssues": 0
+  },
+  "routes": [
+    {
+      "file": "test-app/pages/about.tsx",
+      "size": 1835,
+      "linesOfCode": 36,
+      "complexity": 0,
+      "dependencyCount": 2,
+      "optimizations": []
+    },
+    {
+      "file": "test-app/pages/search.tsx",
+      "size": 375,
+      "linesOfCode": 15,
+      "complexity": 0,
+      "dependencyCount": 1,
+      "optimizations": []
+    },
+    {
+      "file": "test-app/pages/docs/[[...slug]].tsx",
+      "size": 313,
+      "linesOfCode": 11,
+      "complexity": 0,
+      "dependencyCount": 1,
+      "optimizations": []
+    },
+    {
+      "file": "test-app/pages/blogs/[slug].tsx",
+      "size": 276,
+      "linesOfCode": 11,
+      "complexity": 0,
+      "dependencyCount": 1,
+      "optimizations": []
+    },
+    {
+      "file": "test-app/pages/products/index.tsx",
+      "size": 101,
+      "linesOfCode": 4,
+      "complexity": 0,
+      "dependencyCount": 1,
+      "optimizations": []
+    },
+    {
+      "file": "test-app/pages/contact.tsx",
+      "size": 98,
+      "linesOfCode": 4,
+      "complexity": 0,
+      "dependencyCount": 1,
+      "optimizations": []
+    },
+    {
+      "file": "test-app/pages/index.tsx",
+      "size": 98,
+      "linesOfCode": 4,
+      "complexity": 0,
+      "dependencyCount": 1,
+      "optimizations": []
+    }
+  ],
+  "recommendations": [
+    "Use React.lazy() for heavy route components",
+    "Implement proper error boundaries for better UX"
+  ]
+}

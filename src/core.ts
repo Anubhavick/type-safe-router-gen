@@ -5,10 +5,12 @@ import { generateRoutesFile } from './generator';
 export interface Config {
   input: string;
   output: string;
-  framework: 'nextjs' | 'remix' | 'astro' | 'sveltekit';
+  framework: 'nextjs' | 'nextjs-app' | 'remix' | 'astro' | 'sveltekit';
   excludePatterns: string[];
   includeQueryParams: boolean;
   generateTests: boolean;
+  generateApiRoutes?: boolean;
+  routeAnalytics?: boolean;
 }
 
 interface DiscoveredRouteEntry {
@@ -27,6 +29,14 @@ function getRoutePathFromFilePath(filePath: string, basePagesDir: string, framew
     case 'nextjs':
       routePath = routePath.replace(/\[\[\.\.\.([^[\]]+)\]\]/g, ':$1*');
       routePath = routePath.replace(/\[([^\]]+)\]/g, ':$1');
+      break;
+    case 'nextjs-app':
+      // Next.js App Router specific patterns
+      routePath = routePath.replace(/\(([^)]+)\)/g, ''); // Remove route groups
+      routePath = routePath.replace(/\[\[\.\.\.([^[\]]+)\]\]/g, ':$1*');
+      routePath = routePath.replace(/\[([^\]]+)\]/g, ':$1');
+      // Handle page.tsx, layout.tsx, loading.tsx, error.tsx, etc.
+      routePath = routePath.replace(/\/(page|layout|loading|error|not-found|template)$/, '');
       break;
     case 'remix':
       routePath = routePath.replace(/\$([^.]+)/g, ':$1');
@@ -58,7 +68,7 @@ function getRoutePathFromFilePath(filePath: string, basePagesDir: string, framew
   return routePath;
 }
 
-function getAllFilePaths(dirPath: string, excludePatterns: string[] = [], fileList: string[] = []): string[] {
+export function getAllFilePaths(dirPath: string, excludePatterns: string[] = [], fileList: string[] = []): string[] {
   try {
     const files = readdirSync(dirPath, { withFileTypes: true });
 
@@ -80,7 +90,13 @@ function getAllFilePaths(dirPath: string, excludePatterns: string[] = [], fileLi
       if (file.isDirectory()) {
         getAllFilePaths(fullPath, excludePatterns, fileList);
       } else if (file.isFile() && /\.(tsx|ts|jsx|js)$/.test(file.name)) {
-        fileList.push(fullPath);
+        // For App Router, only include page.tsx, layout.tsx files for route generation
+        const isAppRouterFile = file.name.match(/^(page|layout)\.(tsx|ts|jsx|js)$/);
+        const isRegularFile = !file.name.match(/^(layout|loading|error|not-found|template|global-error)\.(tsx|ts|jsx|js)$/);
+        
+        if (isAppRouterFile || isRegularFile) {
+          fileList.push(fullPath);
+        }
       }
     });
   } catch (error) {
@@ -119,7 +135,7 @@ export function generateRoutes(config: Config): void {
   console.log(`Framework: ${config.framework}`);
 
   if (!require('fs').existsSync(inputPath)) {
-    console.error(`❌ Input directory does not exist: ${inputPath}`);
+    console.error(`\x1b[31mError: Input directory does not exist: ${inputPath}\x1b[0m`);
     return;
   }
 
@@ -170,6 +186,14 @@ export function generateRoutes(config: Config): void {
   if (config.generateTests) {
     generateTestFile(discoveredRoutes, outputPath);
   }
+
+  if (config.routeAnalytics) {
+    generateRouteAnalytics(discoveredRoutes, inputPath);
+  }
+
+  if (config.generateApiRoutes) {
+    generateApiRoutes(discoveredRoutes, outputPath);
+  }
 }
 
 function generateTestFile(routes: DiscoveredRouteEntry[], outputPath: string): void {
@@ -207,5 +231,250 @@ function generateTestFile(routes: DiscoveredRouteEntry[], outputPath: string): v
   testContent += `});\n`;
 
   require('fs').writeFileSync(testPath, testContent, 'utf-8');
-  console.log(`✅ Generated test file: ${testPath}`);
+  console.log(`\x1b[32mGenerated test file: ${testPath}\x1b[0m`);
+}
+
+function generateRouteAnalytics(routes: DiscoveredRouteEntry[], _inputPath: string): void {
+  const analytics = {
+    totalRoutes: routes.length,
+    dynamicRoutes: routes.filter(r => r.params.length > 0).length,
+    staticRoutes: routes.filter(r => r.params.length === 0).length,
+    routesWithQueryParams: routes.filter(r => r.queryParams && r.queryParams.length > 0).length,
+    nestedRoutes: routes.filter(r => (r.routePath.match(/\//g) || []).length > 1).length,
+    catchAllRoutes: routes.filter(r => r.params.some(p => p.catchAll)).length,
+    routeDepthDistribution: {} as Record<number, number>,
+    parameterUsage: {} as Record<string, number>,
+    fileTypes: {} as Record<string, number>
+  };
+
+  // Calculate route depth distribution
+  routes.forEach(route => {
+    const depth = (route.routePath.match(/\//g) || []).length;
+    analytics.routeDepthDistribution[depth] = (analytics.routeDepthDistribution[depth] || 0) + 1;
+  });
+
+  // Calculate parameter usage
+  routes.forEach(route => {
+    route.params.forEach(param => {
+      analytics.parameterUsage[param.name] = (analytics.parameterUsage[param.name] || 0) + 1;
+    });
+  });
+
+  // Calculate file type distribution
+  routes.forEach(route => {
+    const ext = route.filePath.split('.').pop() || 'unknown';
+    analytics.fileTypes[ext] = (analytics.fileTypes[ext] || 0) + 1;
+  });
+
+  const analyticsPath = join(process.cwd(), 'route-analytics.json');
+  require('fs').writeFileSync(analyticsPath, JSON.stringify(analytics, null, 2), 'utf-8');
+  
+  console.log('\n\x1b[33mRoute Analytics Generated:\x1b[0m');
+  console.log(`   Total Routes: ${analytics.totalRoutes}`);
+  console.log(`   Dynamic Routes: ${analytics.dynamicRoutes}`);
+  console.log(`   Static Routes: ${analytics.staticRoutes}`);
+  console.log(`   Routes with Query Params: ${analytics.routesWithQueryParams}`);
+  console.log(`   Nested Routes: ${analytics.nestedRoutes}`);
+  console.log(`   Catch-all Routes: ${analytics.catchAllRoutes}`);
+  console.log(`   Report saved to: ${analyticsPath}`);
+}
+
+function generateApiRoutes(routes: DiscoveredRouteEntry[], outputPath: string): void {
+  const apiRoutes = routes.filter(route => 
+    route.filePath.includes('/api/') || 
+    route.filePath.includes('/route.') ||
+    route.filePath.match(/\/(GET|POST|PUT|DELETE|PATCH)\.(ts|js)$/)
+  );
+
+  if (apiRoutes.length === 0) {
+    console.log('\x1b[33mWarning: No API routes detected\x1b[0m');
+    return;
+  }
+
+  const apiPath = outputPath.replace('.ts', '-api.ts');
+  let apiContent = `// Auto-generated API route helpers\n`;
+  apiContent += `export const ApiRoutes = {\n`;
+
+  apiRoutes.forEach(route => {
+    const routeName = route.routePath === '/' ? 'root' : route.routePath.replace(/^\/api\//, '').replace(/\//g, '_').replace(/:([a-zA-Z0-9_]+)\*?/g, '$1');
+    
+    if (route.params.length === 0) {
+      apiContent += `  ${routeName}: () => '${route.routePath}',\n`;
+    } else {
+      const paramTypes = route.params.map(p => `${p.name}${p.optional ? '?' : ''}: ${p.type}`).join(', ');
+      apiContent += `  ${routeName}: (params: { ${paramTypes} }) => \`${route.routePath.replace(/:([a-zA-Z0-9_]+)\*?/g, '${params.$1}')}\`,\n`;
+    }
+  });
+
+  apiContent += `};\n\n`;
+
+  // Add fetch helpers
+  apiContent += `// Type-safe fetch helpers\n`;
+  apiContent += `export const api = {\n`;
+  apiContent += `  get: async <T>(url: string, options?: RequestInit): Promise<T> => {\n`;
+  apiContent += `    const response = await fetch(url, { ...options, method: 'GET' });\n`;
+  apiContent += `    if (!response.ok) throw new Error(\`HTTP error! status: \${response.status}\`);\n`;
+  apiContent += `    return response.json();\n`;
+  apiContent += `  },\n`;
+  apiContent += `  post: async <T>(url: string, data?: any, options?: RequestInit): Promise<T> => {\n`;
+  apiContent += `    const response = await fetch(url, {\n`;
+  apiContent += `      ...options,\n`;
+  apiContent += `      method: 'POST',\n`;
+  apiContent += `      headers: { 'Content-Type': 'application/json', ...options?.headers },\n`;
+  apiContent += `      body: data ? JSON.stringify(data) : undefined\n`;
+  apiContent += `    });\n`;
+  apiContent += `    if (!response.ok) throw new Error(\`HTTP error! status: \${response.status}\`);\n`;
+  apiContent += `    return response.json();\n`;
+  apiContent += `  },\n`;
+  apiContent += `  put: async <T>(url: string, data?: any, options?: RequestInit): Promise<T> => {\n`;
+  apiContent += `    const response = await fetch(url, {\n`;
+  apiContent += `      ...options,\n`;
+  apiContent += `      method: 'PUT',\n`;
+  apiContent += `      headers: { 'Content-Type': 'application/json', ...options?.headers },\n`;
+  apiContent += `      body: data ? JSON.stringify(data) : undefined\n`;
+  apiContent += `    });\n`;
+  apiContent += `    if (!response.ok) throw new Error(\`HTTP error! status: \${response.status}\`);\n`;
+  apiContent += `    return response.json();\n`;
+  apiContent += `  },\n`;
+  apiContent += `  delete: async <T>(url: string, options?: RequestInit): Promise<T> => {\n`;
+  apiContent += `    const response = await fetch(url, { ...options, method: 'DELETE' });\n`;
+  apiContent += `    if (!response.ok) throw new Error(\`HTTP error! status: \${response.status}\`);\n`;
+  apiContent += `    return response.json();\n`;
+  apiContent += `  }\n`;
+  apiContent += `};\n`;
+
+  require('fs').writeFileSync(apiPath, apiContent, 'utf-8');
+  console.log(`\x1b[32mGenerated API routes file: ${apiPath}\x1b[0m`);
+}
+
+export function auditRoutes(config: Config, sourceDir: string, autoFix: boolean = false): void {
+  const inputPath = resolve(config.input);
+  const sourcePath = resolve(sourceDir);
+  
+  // Get all route files
+  const allRouteFiles = getAllFilePaths(inputPath, config.excludePatterns);
+  const discoveredRoutes: DiscoveredRouteEntry[] = [];
+
+  allRouteFiles.forEach(filePath => {
+    const routePath = getRoutePathFromFilePath(filePath, inputPath, config.framework);
+    discoveredRoutes.push({ 
+      filePath, 
+      routePath, 
+      params: [],
+      queryParams: undefined 
+    });
+  });
+
+  // Get all source files
+  const sourceFiles = getAllFilePaths(sourcePath, ['**/node_modules/**', '**/dist/**', '**/.next/**']);
+  
+  // Track route usage
+  const routeUsage: Record<string, { count: number; files: string[] }> = {};
+  const potentialIssues: string[] = [];
+
+  console.log('\x1b[33mAnalyzing route usage...\x1b[0m\n');
+
+  // Initialize usage tracking
+  discoveredRoutes.forEach(route => {
+    routeUsage[route.routePath] = { count: 0, files: [] };
+  });
+
+  // Scan source files for route references
+  sourceFiles.forEach(sourceFile => {
+    try {
+      const content = readFileSync(sourceFile, 'utf-8');
+      
+      discoveredRoutes.forEach(route => {
+        // Look for route path references
+        const routePattern = route.routePath.replace(/:/g, '\\w+');
+        const regex = new RegExp(`['"\`]${routePattern}['"\`]`, 'g');
+        const matches = content.match(regex);
+        
+        if (matches) {
+          routeUsage[route.routePath].count += matches.length;
+          if (!routeUsage[route.routePath].files.includes(sourceFile)) {
+            routeUsage[route.routePath].files.push(sourceFile);
+          }
+        }
+
+        // Look for magic string usage (potential issues)
+        const magicStringRegex = /['"`]\/[^'"`\s]*['"`]/g;
+        const magicStrings = content.match(magicStringRegex);
+        if (magicStrings) {
+          magicStrings.forEach(str => {
+            const cleanStr = str.slice(1, -1); // Remove quotes
+            if (cleanStr.startsWith('/') && !discoveredRoutes.some(r => r.routePath === cleanStr)) {
+              potentialIssues.push(`Potential broken link in ${relative(process.cwd(), sourceFile)}: ${str}`);
+            }
+          });
+        }
+      });
+    } catch (error) {
+      console.warn(`\x1b[33mWarning: Could not read file: ${sourceFile}\x1b[0m`);
+    }
+  });
+
+  // Report unused routes
+  const unusedRoutes = Object.entries(routeUsage).filter(([_, usage]) => usage.count === 0);
+  const mostUsedRoutes = Object.entries(routeUsage)
+    .sort(([,a], [,b]) => b.count - a.count)
+    .slice(0, 10);
+
+  console.log('\x1b[36mRoute Usage Report:\x1b[0m');
+  console.log(`   Total Routes: ${discoveredRoutes.length}`);
+  console.log(`   Used Routes: ${Object.values(routeUsage).filter(u => u.count > 0).length}`);
+  console.log(`   Unused Routes: ${unusedRoutes.length}`);
+  console.log(`   Potential Issues: ${potentialIssues.length}\n`);
+
+  if (unusedRoutes.length > 0) {
+    console.log('\x1b[31mUnused Routes:\x1b[0m');
+    unusedRoutes.forEach(([route]) => {
+      const routeFile = discoveredRoutes.find(r => r.routePath === route)?.filePath;
+      console.log(`   ${route} (${routeFile ? relative(process.cwd(), routeFile) : 'unknown'})`);
+    });
+    console.log();
+  }
+
+  if (mostUsedRoutes.length > 0) {
+    console.log('\x1b[32mMost Used Routes:\x1b[0m');
+    mostUsedRoutes.slice(0, 5).forEach(([route, usage]) => {
+      console.log(`   ${route} (used ${usage.count} times)`);
+    });
+    console.log();
+  }
+
+  if (potentialIssues.length > 0) {
+    console.log('\x1b[33mPotential Issues:\x1b[0m');
+    potentialIssues.slice(0, 10).forEach(issue => {
+      console.log(`   ${issue}`);
+    });
+    if (potentialIssues.length > 10) {
+      console.log(`   ... and ${potentialIssues.length - 10} more`);
+    }
+    console.log();
+  }
+
+  // Generate audit report
+  const auditReport = {
+    timestamp: new Date().toISOString(),
+    totalRoutes: discoveredRoutes.length,
+    usedRoutes: Object.values(routeUsage).filter(u => u.count > 0).length,
+    unusedRoutes: unusedRoutes.map(([route]) => route),
+    mostUsedRoutes: mostUsedRoutes.slice(0, 10).map(([route, usage]) => ({ route, count: usage.count })),
+    potentialIssues: potentialIssues,
+    recommendations: [
+      unusedRoutes.length > 0 ? `Consider removing ${unusedRoutes.length} unused routes` : null,
+      potentialIssues.length > 0 ? `Fix ${potentialIssues.length} potential routing issues` : null,
+      'Use the generated Routes helper to ensure type-safe navigation'
+    ].filter(Boolean)
+  };
+
+  const auditPath = join(process.cwd(), 'route-audit.json');
+  require('fs').writeFileSync(auditPath, JSON.stringify(auditReport, null, 2), 'utf-8');
+  console.log(`\x1b[32mAudit report saved to: ${auditPath}\x1b[0m`);
+
+  if (autoFix && unusedRoutes.length > 0) {
+    console.log('\n\x1b[33mAuto-fix mode enabled, but manual review is recommended for route removal.\x1b[0m');
+    console.log('   Use the audit report to decide which routes to remove.');
+  }
 }

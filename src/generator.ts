@@ -117,9 +117,9 @@ export function generateRoutesFile(routes: RouteData[], outputPath?: string) {
 
   try {
     writeFileSync(finalOutputPath, fileContent, 'utf-8');
-    console.log(`\nSUCCESS: Generated routes file at: ${finalOutputPath}`);
+    console.log(`\n\x1b[32mSUCCESS: Generated routes file at: ${finalOutputPath}\x1b[0m`);
   } catch (error) {
-    console.error(`\nERROR: Could not generate routes file: ${finalOutputPath}`);
+    console.error(`\n\x1b[31mERROR: Could not generate routes file: ${finalOutputPath}\x1b[0m`);
     if (error instanceof Error) {
       console.error(`Reason: ${error.message}`);
     } else {
