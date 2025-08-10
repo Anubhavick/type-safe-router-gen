@@ -478,3 +478,164 @@ export function auditRoutes(config: Config, sourceDir: string, autoFix: boolean 
     console.log('   Use the audit report to decide which routes to remove.');
   }
 }
+
+export function validateRoutes(config: Config, sourceDir: string, strictMode: boolean = false): void {
+  const inputPath = resolve(config.input);
+  const sourcePath = resolve(sourceDir);
+  
+  // Get all route files and discover routes
+  const allRouteFiles = getAllFilePaths(inputPath, config.excludePatterns);
+  const discoveredRoutes: DiscoveredRouteEntry[] = [];
+
+  allRouteFiles.forEach(filePath => {
+    const routePath = getRoutePathFromFilePath(filePath, inputPath, config.framework);
+    const params: { name: string; type: string; optional?: boolean; catchAll?: boolean; }[] = [];
+    
+    // Extract dynamic parameters
+    const dynamicSegments = routePath.match(/:([a-zA-Z0-9_]+)\*?/g);
+    if (dynamicSegments) {
+      dynamicSegments.forEach(segment => {
+        const isCatchAll = segment.endsWith('*');
+        const paramName = segment.substring(1).replace(/\*$/, '');
+        params.push({
+          name: paramName,
+          type: isCatchAll ? 'string[]' : 'string',
+          optional: isCatchAll,
+          catchAll: isCatchAll
+        });
+      });
+    }
+
+    const queryParams = config.includeQueryParams ? extractQueryParams(filePath) : [];
+    discoveredRoutes.push({ 
+      filePath, 
+      routePath, 
+      params, 
+      queryParams: queryParams.length > 0 ? queryParams : undefined 
+    });
+  });
+
+  // Get all source files to validate
+  const sourceFiles = getAllFilePaths(sourcePath, ['**/node_modules/**', '**/dist/**', '**/.next/**']);
+  
+  const validationErrors: string[] = [];
+  const warnings: string[] = [];
+  let totalRouteUsages = 0;
+
+  console.log('\x1b[33mValidating route usage...\x1b[0m\n');
+
+  sourceFiles.forEach(sourceFile => {
+    try {
+      const content = readFileSync(sourceFile, 'utf-8');
+      const relativePath = relative(process.cwd(), sourceFile);
+      
+      // Check for Routes.* usage patterns
+      const routeUsagePattern = /Routes\.([a-zA-Z0-9_.]+)(\([^)]*\))?/g;
+      const matches = content.matchAll(routeUsagePattern);
+      
+      for (const match of matches) {
+        totalRouteUsages++;
+        const fullMatch = match[0];
+        const routePath = match[1];
+        const params = match[2];
+        
+        // Validate route exists
+        const routeExists = discoveredRoutes.some(route => {
+          const routeName = route.routePath === '/' ? 'home' : 
+            route.routePath.replace(/^\//, '').replace(/:/g, '').replace(/\//g, '.');
+          return routeName === routePath || routePath.startsWith(routeName + '.');
+        });
+        
+        if (!routeExists) {
+          validationErrors.push(`${relativePath}: Route '${routePath}' does not exist (${fullMatch})`);
+        }
+        
+        // In strict mode, validate parameter usage
+        if (strictMode && params) {
+          const matchingRoute = discoveredRoutes.find(route => {
+            const routeName = route.routePath === '/' ? 'home' : 
+              route.routePath.replace(/^\//, '').replace(/:/g, '').replace(/\//g, '.');
+            return routeName === routePath || routePath.startsWith(routeName + '.');
+          });
+          
+          if (matchingRoute && matchingRoute.params.length > 0) {
+            // Basic parameter validation (could be enhanced)
+            if (!params.includes('{') && matchingRoute.params.some(p => !p.optional)) {
+              warnings.push(`${relativePath}: Route '${routePath}' requires parameters but none provided`);
+            }
+          }
+        }
+      }
+      
+      // Check for magic string usage that could be replaced with Routes
+      if (strictMode) {
+        const magicStringPattern = /['"`]\/[a-zA-Z][^'"`\s]*['"`]/g;
+        const magicStrings = content.matchAll(magicStringPattern);
+        
+        for (const match of magicStrings) {
+          const pathString = match[0].slice(1, -1); // Remove quotes
+          const couldBeRoute = discoveredRoutes.some(route => 
+            route.routePath === pathString || route.routePath.startsWith(pathString)
+          );
+          
+          if (couldBeRoute) {
+            warnings.push(`${relativePath}: Consider using Routes helper instead of magic string: ${match[0]}`);
+          }
+        }
+      }
+      
+    } catch (error) {
+      console.warn(`\x1b[33mWarning: Could not read file: ${sourceFile}\x1b[0m`);
+    }
+  });
+
+  // Report validation results
+  console.log('\x1b[36mValidation Results:\x1b[0m');
+  console.log(`   Total Route Usages: ${totalRouteUsages}`);
+  console.log(`   Validation Errors: ${validationErrors.length}`);
+  console.log(`   Warnings: ${warnings.length}\n`);
+
+  if (validationErrors.length > 0) {
+    console.log('\x1b[31mValidation Errors:\x1b[0m');
+    validationErrors.slice(0, 10).forEach(error => {
+      console.log(`   ${error}`);
+    });
+    if (validationErrors.length > 10) {
+      console.log(`   ... and ${validationErrors.length - 10} more errors`);
+    }
+    console.log();
+  }
+
+  if (warnings.length > 0 && strictMode) {
+    console.log('\x1b[33mWarnings:\x1b[0m');
+    warnings.slice(0, 10).forEach(warning => {
+      console.log(`   ${warning}`);
+    });
+    if (warnings.length > 10) {
+      console.log(`   ... and ${warnings.length - 10} more warnings`);
+    }
+    console.log();
+  }
+
+  // Generate validation report
+  const validationReport = {
+    timestamp: new Date().toISOString(),
+    totalRouteUsages,
+    validationErrors: validationErrors.length,
+    warnings: warnings.length,
+    errors: validationErrors,
+    warningsList: warnings,
+    status: validationErrors.length === 0 ? 'PASSED' : 'FAILED'
+  };
+
+  const reportPath = join(process.cwd(), 'route-validation.json');
+  require('fs').writeFileSync(reportPath, JSON.stringify(validationReport, null, 2), 'utf-8');
+  console.log(`\x1b[32mValidation report saved to: ${reportPath}\x1b[0m`);
+
+  if (validationErrors.length > 0) {
+    console.log(`\n\x1b[31mValidation FAILED with ${validationErrors.length} errors\x1b[0m`);
+    process.exit(1);
+  } else {
+    console.log(`\n\x1b[32mValidation PASSED - All routes are valid!\x1b[0m`);
+  }
+}

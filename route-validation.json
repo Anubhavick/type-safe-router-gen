@@ -1,0 +1,12 @@
+{
+  "timestamp": "2025-08-10T06:49:57.247Z",
+  "totalRouteUsages": 9,
+  "validationErrors": 2,
+  "warnings": 0,
+  "errors": [
+    "test-app/pages/about.tsx: Route 'docs.slug' does not exist (Routes.docs.slug())",
+    "test-app/pages/about.tsx: Route 'docs.slug' does not exist (Routes.docs.slug({ slug: ['getting-started', 'overview'] }))"
+  ],
+  "warningsList": [],
+  "status": "FAILED"
+}

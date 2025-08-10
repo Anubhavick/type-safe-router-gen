@@ -4,8 +4,9 @@ import { Command } from 'commander';
 import { watch } from 'chokidar';
 import { existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';
-import { generateRoutes, auditRoutes, getAllFilePaths, Config } from './core';
+import { generateRoutes, auditRoutes, getAllFilePaths, validateRoutes, Config } from './core';
 import { analyzeRoutePerformance } from './performance';
+import { generateRouteDocs } from './docs';
 
 const defaultConfig: Config = {
   input: './pages',
@@ -100,24 +101,14 @@ program
   .option('--generate-tests', 'Generate test files')
   .option('--generate-api', 'Generate API route helpers')
   .option('--analytics', 'Generate route analytics report')
-  .action((options) => {
-    const config = loadConfig(options.config);
-    
-    // Override config with CLI options
-    if (options.input) config.input = options.input;
-    if (options.output) config.output = options.output;
-    if (options.framework) config.framework = options.framework;
-    if (options.queryParams === false) config.includeQueryParams = false;
-    if (options.generateTests) config.generateTests = true;
-    if (options.generateApi) config.generateApiRoutes = true;
-    if (options.analytics) config.routeAnalytics = true;
-
-    console.log('\x1b[32mGenerating routes...\x1b[0m');
-    console.log(`\x1b[36mInput: ${resolve(config.input)}\x1b[0m`);
-    console.log(`\x1b[36mOutput: ${resolve(config.output)}\x1b[0m`);
-    console.log(`\x1b[36mFramework: ${config.framework}\x1b[0m\n`);
-
-    generateRoutes(config);
+    .action((framework, options) => {
+    try {
+      const { generateRoutes } = require('./core');
+      generateRoutes(options.input, options.output, framework, options.strict, options.config);
+    } catch (error) {
+      console.error('\x1b[31mError generating routes:', error instanceof Error ? error.message : String(error), '\x1b[0m');
+      process.exit(1);
+    }
   });
 
 program
@@ -223,6 +214,105 @@ program
     const routeFiles = getAllFilePaths(resolve(config.input), config.excludePatterns);
     
     analyzeRoutePerformance(routeFiles);
+  });
+
+program
+  .command('validate')
+  .alias('check')
+  .description('Validate route usage across the codebase')
+  .option('-i, --input <path>', 'Input directory containing route files')
+  .option('-s, --source <path>', 'Source directory to validate', './src')
+  .option('-c, --config <path>', 'Path to config file')
+  .option('--strict', 'Enable strict validation mode')
+  .action((options) => {
+    const config = loadConfig(options.config);
+    
+    if (options.input) config.input = options.input;
+    const sourceDir = options.source || './src';
+    
+    console.log('\x1b[36mValidating route usage...\x1b[0m');
+    console.log(`\x1b[36mRoute files: ${resolve(config.input)}\x1b[0m`);
+    console.log(`\x1b[36mSource files: ${resolve(sourceDir)}\x1b[0m\n`);
+    
+    validateRoutes(config, sourceDir, options.strict);
+  });
+
+program
+  .command('health')
+  .description('Check overall route health and get recommendations')
+  .option('-i, --input <path>', 'Input directory containing route files')
+  .option('-c, --config <path>', 'Path to config file')
+  .action((options) => {
+    const config = loadConfig(options.config);
+    
+    if (options.input) config.input = options.input;
+    
+    console.log('\x1b[36mChecking route health...\x1b[0m\n');
+    
+    // Generate all reports
+    console.log('Running comprehensive analysis...\n');
+    generateRoutes({ ...config, routeAnalytics: true });
+    
+    const routeFiles = getAllFilePaths(resolve(config.input), config.excludePatterns);
+    analyzeRoutePerformance(routeFiles);
+    
+    auditRoutes(config, './src', false);
+    
+    console.log('\n\x1b[32mHealth check complete! Check the generated reports for detailed insights.\x1b[0m');
+  });
+
+program
+  .command('docs')
+  .description('Generate route documentation')
+  .option('-i, --input <path>', 'Input directory containing route files')
+  .option('-o, --output <path>', 'Output file for documentation', './ROUTES.md')
+  .option('-c, --config <path>', 'Path to config file')
+  .action((options) => {
+    const config = loadConfig(options.config);
+    
+    if (options.input) config.input = options.input;
+    
+    console.log('\x1b[36mGenerating route documentation...\x1b[0m');
+    
+    // Get all route files and discover routes (simplified version for docs)
+    const routeFiles = getAllFilePaths(resolve(config.input), config.excludePatterns);
+    const routes: any[] = [];
+    
+    routeFiles.forEach(filePath => {
+      // This is a simplified version - in a real implementation, 
+      // we'd reuse the route discovery logic from core.ts
+      const routePath = filePath.includes('index') ? '/' : 
+        filePath.replace(resolve(config.input), '').replace(/\.(tsx|ts|jsx|js)$/, '');
+      
+      routes.push({
+        filePath,
+        routePath: routePath.startsWith('/') ? routePath : '/' + routePath,
+        params: [],
+        queryParams: []
+      });
+    });
+    
+    generateRouteDocs(routes, options.output);
+  });
+
+program
+  .command('migrate')
+  .description('Migrate between different routing frameworks')
+  .option('--from <framework>', 'Source framework', 'nextjs-pages')
+  .option('--to <framework>', 'Target framework', 'nextjs-app')
+  .option('--pages-dir <path>', 'Pages directory path', './pages')
+  .option('--app-dir <path>', 'App directory path', './app')
+  .action((options) => {
+    console.log('\x1b[36mStarting migration process...\x1b[0m');
+    
+    if (options.from === 'nextjs-pages' && options.to === 'nextjs-app') {
+      const { migrateToAppRouter } = require('./migrate');
+      migrateToAppRouter(options.pagesDir, options.appDir);
+    } else {
+      console.log('\x1b[33mMigration between', options.from, 'and', options.to, 'is not yet supported.\x1b[0m');
+      console.log('\x1b[33mCurrently supported migrations:\x1b[0m');
+      console.log('  - nextjs-pages → nextjs-app');
+    }
   });
 
 // If no command is provided, default to generate
