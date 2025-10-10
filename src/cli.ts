@@ -101,6 +101,8 @@ program
   .option('--generate-tests', 'Generate test files')
   .option('--generate-api', 'Generate API route helpers')
   .option('--analytics', 'Generate route analytics report')
+  .option('--dry-run', 'Show what would be generated without writing files')
+  .option('-v, --verbose', 'Enable verbose output')
   .action((options) => {
     try {
       const config = loadConfig(options.config);
@@ -113,6 +115,18 @@ program
       if (options.generateTests) config.generateTests = true;
       if (options.generateApi) config.generateApiRoutes = true;
       if (options.analytics) config.routeAnalytics = true;
+      if (options.dryRun) config.dryRun = true;
+      if (options.verbose) config.verbose = true;
+      
+      if (options.dryRun) {
+        console.log('\x1b[33m🔍 DRY RUN MODE - No files will be written\x1b[0m\n');
+      }
+      
+      if (options.verbose) {
+        console.log('\x1b[36m📋 Configuration:\x1b[0m');
+        console.log(JSON.stringify(config, null, 2));
+        console.log();
+      }
       
       const { generateRoutes } = require('./core');
       generateRoutes(config);

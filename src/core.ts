@@ -11,6 +11,8 @@ export interface Config {
   generateTests: boolean;
   generateApiRoutes?: boolean;
   routeAnalytics?: boolean;
+  dryRun?: boolean;
+  verbose?: boolean;
 }
 
 interface DiscoveredRouteEntry {
@@ -249,31 +251,38 @@ export function generateRoutes(config: Config): void {
   });
 
   console.log("\n--- Generating Routes ---");
-  generateRoutesFile(discoveredRoutes, outputPath);
+  
+  if (!config.dryRun) {
+    generateRoutesFile(discoveredRoutes, outputPath);
+  } else {
+    console.log('\x1b[33m⚠️  Skipping file generation (dry-run mode)\x1b[0m');
+  }
 
   // Summary
   console.log('\n\x1b[36m═══════════════════════════════════════════════════\x1b[0m');
-  console.log('\x1b[32m✓ Route Generation Complete!\x1b[0m');
+  console.log(`\x1b[32m✓ Route ${config.dryRun ? 'Analysis' : 'Generation'} Complete!\x1b[0m`);
   console.log('\x1b[36m═══════════════════════════════════════════════════\x1b[0m');
   console.log(`\x1b[36mSummary:\x1b[0m`);
   console.log(`  Total Routes: ${discoveredRoutes.length}`);
   console.log(`  Static Routes: ${discoveredRoutes.filter(r => r.params.length === 0).length}`);
   console.log(`  Dynamic Routes: ${discoveredRoutes.filter(r => r.params.length > 0).length}`);
   console.log(`  Routes with Query Params: ${discoveredRoutes.filter(r => r.queryParams && r.queryParams.length > 0).length}`);
-  console.log(`\x1b[36mOutput:\x1b[0m`);
-  console.log(`  ${relative(process.cwd(), outputPath)}`);
+  if (!config.dryRun) {
+    console.log(`\x1b[36mOutput:\x1b[0m`);
+    console.log(`  ${relative(process.cwd(), outputPath)}`);
+  }
 
-  if (config.generateTests) {
+  if (config.generateTests && !config.dryRun) {
     console.log('\n\x1b[33m⚡ Generating test files...\x1b[0m');
     generateTestFile(discoveredRoutes, outputPath);
   }
 
-  if (config.routeAnalytics) {
+  if (config.routeAnalytics && !config.dryRun) {
     console.log('\n\x1b[33m📊 Generating route analytics...\x1b[0m');
     generateRouteAnalytics(discoveredRoutes, inputPath);
   }
 
-  if (config.generateApiRoutes) {
+  if (config.generateApiRoutes && !config.dryRun) {
     console.log('\n\x1b[33m🔌 Generating API route helpers...\x1b[0m');
     generateApiRoutes(discoveredRoutes, outputPath);
   }

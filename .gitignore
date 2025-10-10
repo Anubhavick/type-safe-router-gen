@@ -63,3 +63,6 @@ route-audit.json
 route-performance.json
 route-validation.json
 route-health.json
+test-output.ts
+*-routes.ts
+generated-routes*.ts

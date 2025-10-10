@@ -1,31 +1,27 @@
 {
-  "timestamp": "2025-08-10T06:50:12.114Z",
+  "timestamp": "2025-10-10T15:24:59.864Z",
   "totalRoutes": 7,
-  "usedRoutes": 4,
+  "usedRoutes": 0,
   "unusedRoutes": [
+    "/about",
     "/blogs/:slug",
+    "/contact",
     "/docs/:slug*",
+    "/",
+    "/products",
     "/search"
   ],
   "mostUsedRoutes": [
     {
-      "route": "/",
-      "count": 22
-    },
-    {
       "route": "/about",
-      "count": 2
-    },
-    {
-      "route": "/contact",
-      "count": 2
-    },
-    {
-      "route": "/products",
-      "count": 2
+      "count": 0
     },
     {
       "route": "/blogs/:slug",
+      "count": 0
+    },
+    {
+      "route": "/contact",
       "count": 0
     },
     {
@@ -33,71 +29,21 @@
       "count": 0
     },
     {
+      "route": "/",
+      "count": 0
+    },
+    {
+      "route": "/products",
+      "count": 0
+    },
+    {
       "route": "/search",
       "count": 0
     }
   ],
-  "potentialIssues": [
-    "Potential broken link in src/core.ts: '/index'",
-    "Potential broken link in src/core.ts: `/${routePath}`",
-    "Potential broken link in src/core.ts: '/api/'",
-    "Potential broken link in src/core.ts: '/route.'",
-    "Potential broken link in src/core.ts: '/index'",
-    "Potential broken link in src/core.ts: `/${routePath}`",
-    "Potential broken link in src/core.ts: '/api/'",
-    "Potential broken link in src/core.ts: '/route.'",
-    "Potential broken link in src/core.ts: '/index'",
-    "Potential broken link in src/core.ts: `/${routePath}`",
-    "Potential broken link in src/core.ts: '/api/'",
-    "Potential broken link in src/core.ts: '/route.'",
-    "Potential broken link in src/core.ts: '/index'",
-    "Potential broken link in src/core.ts: `/${routePath}`",
-    "Potential broken link in src/core.ts: '/api/'",
-    "Potential broken link in src/core.ts: '/route.'",
-    "Potential broken link in src/core.ts: '/index'",
-    "Potential broken link in src/core.ts: `/${routePath}`",
-    "Potential broken link in src/core.ts: '/api/'",
-    "Potential broken link in src/core.ts: '/route.'",
-    "Potential broken link in src/core.ts: '/index'",
-    "Potential broken link in src/core.ts: `/${routePath}`",
-    "Potential broken link in src/core.ts: '/api/'",
-    "Potential broken link in src/core.ts: '/route.'",
-    "Potential broken link in src/core.ts: '/index'",
-    "Potential broken link in src/core.ts: `/${routePath}`",
-    "Potential broken link in src/core.ts: '/api/'",
-    "Potential broken link in src/core.ts: '/route.'",
-    "Potential broken link in src/generated-routes.test.ts: '/blogs/'",
-    "Potential broken link in src/generated-routes.test.ts: '/docs/'",
-    "Potential broken link in src/generated-routes.test.ts: '/blogs/'",
-    "Potential broken link in src/generated-routes.test.ts: '/docs/'",
-    "Potential broken link in src/generated-routes.test.ts: '/blogs/'",
-    "Potential broken link in src/generated-routes.test.ts: '/docs/'",
-    "Potential broken link in src/generated-routes.test.ts: '/blogs/'",
-    "Potential broken link in src/generated-routes.test.ts: '/docs/'",
-    "Potential broken link in src/generated-routes.test.ts: '/blogs/'",
-    "Potential broken link in src/generated-routes.test.ts: '/docs/'",
-    "Potential broken link in src/generated-routes.test.ts: '/blogs/'",
-    "Potential broken link in src/generated-routes.test.ts: '/docs/'",
-    "Potential broken link in src/generated-routes.test.ts: '/blogs/'",
-    "Potential broken link in src/generated-routes.test.ts: '/docs/'",
-    "Potential broken link in src/generated-routes.ts: `/blogs/${params.slug}`",
-    "Potential broken link in src/generated-routes.ts: `/blogs/${params.slug}`",
-    "Potential broken link in src/generated-routes.ts: `/blogs/${params.slug}`",
-    "Potential broken link in src/generated-routes.ts: `/blogs/${params.slug}`",
-    "Potential broken link in src/generated-routes.ts: `/blogs/${params.slug}`",
-    "Potential broken link in src/generated-routes.ts: `/blogs/${params.slug}`",
-    "Potential broken link in src/generated-routes.ts: `/blogs/${params.slug}`",
-    "Potential broken link in src/performance.ts: '//'",
-    "Potential broken link in src/performance.ts: '//'",
-    "Potential broken link in src/performance.ts: '//'",
-    "Potential broken link in src/performance.ts: '//'",
-    "Potential broken link in src/performance.ts: '//'",
-    "Potential broken link in src/performance.ts: '//'",
-    "Potential broken link in src/performance.ts: '//'"
-  ],
+  "potentialIssues": [],
   "recommendations": [
-    "Consider removing 3 unused routes",
-    "Fix 56 potential routing issues",
+    "Consider removing 7 unused routes",
     "Use the generated Routes helper to ensure type-safe navigation"
   ]
 }

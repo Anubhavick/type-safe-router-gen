@@ -117,11 +117,13 @@ export function generateRoutesFile(routes: RouteData[], outputPath?: string) {
 
   try {
     writeFileSync(finalOutputPath, fileContent, 'utf-8');
-    console.log(`\n\x1b[32mSUCCESS: Generated routes file at: ${finalOutputPath}\x1b[0m`);
+    console.log(`\n\x1b[32m✓ Generated routes file successfully!\x1b[0m`);
+    console.log(`\x1b[36m  Path: ${finalOutputPath}\x1b[0m`);
+    console.log(`\x1b[36m  Size: ${(fileContent.length / 1024).toFixed(2)} KB\x1b[0m`);
   } catch (error) {
-    console.error(`\n\x1b[31mERROR: Could not generate routes file: ${finalOutputPath}\x1b[0m`);
+    console.error(`\n\x1b[31m❌ ERROR: Could not generate routes file: ${finalOutputPath}\x1b[0m`);
     if (error instanceof Error) {
-      console.error(`Reason: ${error.message}`);
+      console.error(`\x1b[31mReason: ${error.message}\x1b[0m`);
     } else {
       console.error(error);
     }
