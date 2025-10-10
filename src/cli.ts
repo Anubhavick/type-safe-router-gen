@@ -101,10 +101,21 @@ program
   .option('--generate-tests', 'Generate test files')
   .option('--generate-api', 'Generate API route helpers')
   .option('--analytics', 'Generate route analytics report')
-    .action((framework, options) => {
+  .action((options) => {
     try {
+      const config = loadConfig(options.config);
+      
+      // Override config with command line options
+      if (options.input) config.input = options.input;
+      if (options.output) config.output = options.output;
+      if (options.framework) config.framework = options.framework;
+      if (options.queryParams === false) config.includeQueryParams = false;
+      if (options.generateTests) config.generateTests = true;
+      if (options.generateApi) config.generateApiRoutes = true;
+      if (options.analytics) config.routeAnalytics = true;
+      
       const { generateRoutes } = require('./core');
-      generateRoutes(options.input, options.output, framework, options.strict, options.config);
+      generateRoutes(config);
     } catch (error) {
       console.error('\x1b[31mError generating routes:', error instanceof Error ? error.message : String(error), '\x1b[0m');
       process.exit(1);

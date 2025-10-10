@@ -56,3 +56,10 @@ jspm_packages/
 
 # editorconfig
 .editorconfig
+
+# Generated files by router-gen
+route-analytics.json
+route-audit.json
+route-performance.json
+route-validation.json
+route-health.json
