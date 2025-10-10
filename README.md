@@ -121,6 +121,15 @@ npx router-gen generate --analytics --generate-api --generate-tests
 npx router-gen generate --framework remix
 npx router-gen generate --framework astro
 npx router-gen generate --framework sveltekit
+
+# NEW: Dry-run mode (preview without writing files)
+npx router-gen generate --dry-run
+
+# NEW: Verbose mode (show detailed configuration)
+npx router-gen generate --verbose
+
+# NEW: Combine both for testing
+npx router-gen generate --dry-run --verbose
 ```
 
 ### Route Analytics & Performance
@@ -195,6 +204,84 @@ Create a `router-gen.config.json` file in your project root:
 | `generateTests` | `boolean` | `false` | Generate test files alongside routes |
 | `generateApiRoutes` | `boolean` | `false` | Generate API route helpers with fetch utilities |
 | `routeAnalytics` | `boolean` | `false` | Generate route analytics and usage reports |
+
+---
+
+## Developer Experience Features
+
+### 🎨 Enhanced CLI Output
+
+The CLI now features beautiful, colorized output with emojis and clear visual hierarchy:
+
+- **Visual Separators**: Clean section dividers for better readability
+- **Emoji Indicators**: 🚀 for actions, ✓ for success, ❌ for errors, 💡 for suggestions
+- **Color Coding**: Green for success, red for errors, yellow for warnings, cyan for info
+- **Progress Tracking**: Real-time feedback on what's happening
+
+### 🔍 Dry-Run Mode
+
+Preview what would be generated without writing any files:
+
+```bash
+npx router-gen generate --dry-run
+```
+
+Perfect for:
+- Testing configuration changes
+- Verifying route discovery
+- CI/CD validation
+- Documentation generation
+
+### 📋 Verbose Mode
+
+See detailed information about the generation process:
+
+```bash
+npx router-gen generate --verbose
+```
+
+Shows:
+- Full configuration being used
+- All discovered routes with details
+- File paths and sizes
+- Framework-specific settings
+
+### 💡 Smart Error Messages
+
+Get helpful suggestions when things go wrong:
+
+```bash
+npx router-gen generate --input ./wrong-path
+
+# Output:
+# ❌ Error: Input directory does not exist!
+# Path: /path/to/wrong-path
+#
+# 💡 Suggestions:
+#   1. Check if the path is correct
+#   2. For Next.js, try: --input ./pages or --input ./app
+#   3. For Remix, try: --input ./app/routes
+#   4. For SvelteKit, try: --input ./src/routes
+#   5. For Astro, try: --input ./src/pages
+```
+
+### 📊 Comprehensive Summaries
+
+After generation, get a detailed summary:
+
+```
+═══════════════════════════════════════════════════
+✓ Route Generation Complete!
+═══════════════════════════════════════════════════
+Summary:
+  Total Routes: 47
+  Static Routes: 35
+  Dynamic Routes: 12
+  Routes with Query Params: 8
+Output:
+  src/generated-routes.ts (15.2 KB)
+═══════════════════════════════════════════════════
+```
 
 ---
 
