@@ -101,10 +101,35 @@ program
   .option('--generate-tests', 'Generate test files')
   .option('--generate-api', 'Generate API route helpers')
   .option('--analytics', 'Generate route analytics report')
-    .action((framework, options) => {
+  .option('--dry-run', 'Show what would be generated without writing files')
+  .option('-v, --verbose', 'Enable verbose output')
+  .action((options) => {
     try {
+      const config = loadConfig(options.config);
+      
+      // Override config with command line options
+      if (options.input) config.input = options.input;
+      if (options.output) config.output = options.output;
+      if (options.framework) config.framework = options.framework;
+      if (options.queryParams === false) config.includeQueryParams = false;
+      if (options.generateTests) config.generateTests = true;
+      if (options.generateApi) config.generateApiRoutes = true;
+      if (options.analytics) config.routeAnalytics = true;
+      if (options.dryRun) config.dryRun = true;
+      if (options.verbose) config.verbose = true;
+      
+      if (options.dryRun) {
+        console.log('\x1b[33m🔍 DRY RUN MODE - No files will be written\x1b[0m\n');
+      }
+      
+      if (options.verbose) {
+        console.log('\x1b[36m📋 Configuration:\x1b[0m');
+        console.log(JSON.stringify(config, null, 2));
+        console.log();
+      }
+      
       const { generateRoutes } = require('./core');
-      generateRoutes(options.input, options.output, framework, options.strict, options.config);
+      generateRoutes(config);
     } catch (error) {
       console.error('\x1b[31mError generating routes:', error instanceof Error ? error.message : String(error), '\x1b[0m');
       process.exit(1);

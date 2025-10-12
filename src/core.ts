@@ -11,6 +11,8 @@ export interface Config {
   generateTests: boolean;
   generateApiRoutes?: boolean;
   routeAnalytics?: boolean;
+  dryRun?: boolean;
+  verbose?: boolean;
 }
 
 interface DiscoveredRouteEntry {
@@ -127,22 +129,90 @@ function extractQueryParams(filePath: string): { name: string; type: string; opt
   return params;
 }
 
+export function detectFramework(inputPath: string): 'nextjs' | 'nextjs-app' | 'remix' | 'astro' | 'sveltekit' | null {
+  const fs = require('fs');
+  const path = require('path');
+  
+  // Check for Next.js App Router
+  if (inputPath.includes('/app') && fs.existsSync(path.join(inputPath, '../package.json'))) {
+    const packageJson = JSON.parse(fs.readFileSync(path.join(inputPath, '../package.json'), 'utf-8'));
+    if (packageJson.dependencies?.next) {
+      // Check if it has page.tsx files (App Router indicator)
+      const files = getAllFilePaths(inputPath, []);
+      if (files.some((f: string) => f.endsWith('/page.tsx') || f.endsWith('/page.ts') || f.endsWith('/page.jsx') || f.endsWith('/page.js'))) {
+        return 'nextjs-app';
+      }
+      return 'nextjs';
+    }
+  }
+  
+  // Check for Next.js Pages Router
+  if (inputPath.includes('/pages')) {
+    return 'nextjs';
+  }
+  
+  // Check for Remix
+  if (inputPath.includes('/routes') && inputPath.includes('/app')) {
+    return 'remix';
+  }
+  
+  // Check for SvelteKit
+  if (inputPath.includes('/routes') && inputPath.includes('/src')) {
+    const files = getAllFilePaths(inputPath, []);
+    if (files.some((f: string) => f.endsWith('+page.svelte'))) {
+      return 'sveltekit';
+    }
+  }
+  
+  // Check for Astro
+  if (inputPath.includes('/pages') && inputPath.includes('/src')) {
+    const files = getAllFilePaths(inputPath, []);
+    if (files.some((f: string) => f.endsWith('.astro'))) {
+      return 'astro';
+    }
+  }
+  
+  return null;
+}
+
 export function generateRoutes(config: Config): void {
   const inputPath = resolve(config.input);
   const outputPath = resolve(config.output);
 
-  console.log(`\nScanning routes in: ${inputPath}`);
-  console.log(`Framework: ${config.framework}`);
+  console.log('\x1b[36m═══════════════════════════════════════════════════\x1b[0m');
+  console.log('\x1b[36m🚀 Type-Safe Router Generator\x1b[0m');
+  console.log('\x1b[36m═══════════════════════════════════════════════════\x1b[0m');
+  console.log(`\x1b[36mScanning routes in:\x1b[0m ${inputPath}`);
+  console.log(`\x1b[36mFramework:\x1b[0m ${config.framework}`);
+  console.log(`\x1b[36mOutput:\x1b[0m ${outputPath}`);
 
   if (!require('fs').existsSync(inputPath)) {
-    console.error(`\x1b[31mError: Input directory does not exist: ${inputPath}\x1b[0m`);
+    console.error('\n\x1b[31m❌ Error: Input directory does not exist!\x1b[0m');
+    console.error(`\x1b[31mPath: ${inputPath}\x1b[0m\n`);
+    console.log('\x1b[33m💡 Suggestions:\x1b[0m');
+    console.log('  1. Check if the path is correct');
+    console.log('  2. For Next.js, try: --input ./pages or --input ./app');
+    console.log('  3. For Remix, try: --input ./app/routes');
+    console.log('  4. For SvelteKit, try: --input ./src/routes');
+    console.log('  5. For Astro, try: --input ./src/pages\n');
     return;
   }
 
   const allRouteFiles = getAllFilePaths(inputPath, config.excludePatterns);
+
+  if (allRouteFiles.length === 0) {
+    console.error('\n\x1b[31m❌ Error: No route files found!\x1b[0m');
+    console.error(`\x1b[31mSearched in: ${inputPath}\x1b[0m\n`);
+    console.log('\x1b[33m💡 Suggestions:\x1b[0m');
+    console.log('  1. Make sure you have route files (.tsx, .ts, .jsx, .js) in the directory');
+    console.log('  2. Check exclude patterns in config (currently excluding: ' + config.excludePatterns.join(', ') + ')');
+    console.log('  3. Verify the framework setting matches your project structure\n');
+    return;
+  }
+
   const discoveredRoutes: DiscoveredRouteEntry[] = [];
 
-  console.log("\nDiscovered Route Files:");
+  console.log("\n\x1b[33m📁 Discovered Route Files:\x1b[0m");
   allRouteFiles.forEach(filePath => {
     const routePath = getRoutePathFromFilePath(filePath, inputPath, config.framework);
 
@@ -181,19 +251,43 @@ export function generateRoutes(config: Config): void {
   });
 
   console.log("\n--- Generating Routes ---");
-  generateRoutesFile(discoveredRoutes, outputPath);
+  
+  if (!config.dryRun) {
+    generateRoutesFile(discoveredRoutes, outputPath);
+  } else {
+    console.log('\x1b[33m⚠️  Skipping file generation (dry-run mode)\x1b[0m');
+  }
 
-  if (config.generateTests) {
+  // Summary
+  console.log('\n\x1b[36m═══════════════════════════════════════════════════\x1b[0m');
+  console.log(`\x1b[32m✓ Route ${config.dryRun ? 'Analysis' : 'Generation'} Complete!\x1b[0m`);
+  console.log('\x1b[36m═══════════════════════════════════════════════════\x1b[0m');
+  console.log(`\x1b[36mSummary:\x1b[0m`);
+  console.log(`  Total Routes: ${discoveredRoutes.length}`);
+  console.log(`  Static Routes: ${discoveredRoutes.filter(r => r.params.length === 0).length}`);
+  console.log(`  Dynamic Routes: ${discoveredRoutes.filter(r => r.params.length > 0).length}`);
+  console.log(`  Routes with Query Params: ${discoveredRoutes.filter(r => r.queryParams && r.queryParams.length > 0).length}`);
+  if (!config.dryRun) {
+    console.log(`\x1b[36mOutput:\x1b[0m`);
+    console.log(`  ${relative(process.cwd(), outputPath)}`);
+  }
+
+  if (config.generateTests && !config.dryRun) {
+    console.log('\n\x1b[33m⚡ Generating test files...\x1b[0m');
     generateTestFile(discoveredRoutes, outputPath);
   }
 
-  if (config.routeAnalytics) {
+  if (config.routeAnalytics && !config.dryRun) {
+    console.log('\n\x1b[33m📊 Generating route analytics...\x1b[0m');
     generateRouteAnalytics(discoveredRoutes, inputPath);
   }
 
-  if (config.generateApiRoutes) {
+  if (config.generateApiRoutes && !config.dryRun) {
+    console.log('\n\x1b[33m🔌 Generating API route helpers...\x1b[0m');
     generateApiRoutes(discoveredRoutes, outputPath);
   }
+
+  console.log('\x1b[36m═══════════════════════════════════════════════════\x1b[0m\n');
 }
 
 function generateTestFile(routes: DiscoveredRouteEntry[], outputPath: string): void {
